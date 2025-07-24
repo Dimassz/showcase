@@ -1,26 +1,52 @@
 const { Catalog, User } = require('../models');
 
+function parseArray(input) {
+  if (Array.isArray(input)) return input;
+  try {
+    const parsed = JSON.parse(input);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    return [];
+  }
+}
+
 const showClothesCatalog = async (req, res) => {
   try {
     const clothes = await Catalog.findAll({
       where: { published: true },
-      orderBy: { id: "ASC" },
+      order: [["id", "ASC"]], // Perbaikan dari orderBy menjadi order
     });
 
     const formattedProduct = clothes.map((item) => {
       const data = item.toJSON();
+
+      let picture = [];
+      try {
+        if (typeof data.picture === "string") {
+          picture = JSON.parse(data.picture);
+        } else if (Array.isArray(data.picture)) {
+          picture = data.picture;
+        }
+      } catch (err) {
+        picture = [];
+      }
+
       return {
         ...data,
-        picture: Array.isArray(data.picture) ? data.picture : [], 
-        formattedPrice: data.price.toLocaleString("id-ID"),
+        picture,
+        formattedPrice:
+          typeof data.price === "number"
+            ? data.price.toLocaleString("id-ID")
+            : "0",
       };
     });
 
     res.render("index", { clothes: formattedProduct });
   } catch (err) {
-    res.status(500).send("Gagal mengambil data katalog" + err);
+    res.status(500).send("Gagal mengambil data katalog: " + err.message);
   }
 };
+
 
 
 const getClothesBySlug = async (req, res) => {
@@ -45,6 +71,8 @@ const getClothesBySlug = async (req, res) => {
     const formattedProduct = {
       ...product,
       picture: Array.isArray(product.picture) ? product.picture : [],
+      details: parseArray(product.details),
+       size: parseArray(product.size),
       formattedPrice: product.price.toLocaleString("id-ID"),
     };
 
