@@ -1,14 +1,7 @@
 const { Catalog, User } = require('../models');
+const parseJsonField = require("../utils/parseJsonField");
 
-function parseArray(input) {
-  if (Array.isArray(input)) return input;
-  try {
-    const parsed = JSON.parse(input);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    return [];
-  }
-}
+
 
 const showClothesCatalog = async (req, res) => {
   try {
@@ -20,25 +13,14 @@ const showClothesCatalog = async (req, res) => {
     const formattedProduct = clothes.map((item) => {
       const data = item.toJSON();
 
-      let picture = [];
-      try {
-        if (typeof data.picture === "string") {
-          picture = JSON.parse(data.picture);
-        } else if (Array.isArray(data.picture)) {
-          picture = data.picture;
-        }
-      } catch (err) {
-        picture = [];
-      }
-
-      return {
-        ...data,
-        picture,
-        formattedPrice:
-          typeof data.price === "number"
-            ? data.price.toLocaleString("id-ID")
-            : "0",
-      };
+    return {
+    ...data,
+    picture: parseJsonField(data.picture),
+    formattedPrice:
+      typeof data.price === "number"
+        ? data.price.toLocaleString("id-ID")
+        : "0",
+  };
     });
 
     res.render("index", { clothes: formattedProduct });
@@ -52,7 +34,7 @@ const showClothesCatalog = async (req, res) => {
 const getClothesBySlug = async (req, res) => {
   const { slug } = req.params;
 
-  const slugRegex = /^[a-z\-]+$/;
+  const slugRegex = /^[A-Za-z\-]+$/;
   if (!slugRegex.test(slug)) {
     return res.redirect("/404");
   }
@@ -66,14 +48,16 @@ const getClothesBySlug = async (req, res) => {
       return res.redirect("/404");
     }
 
-    const product = item.toJSON(); // ubah ke plain object
+    const product = item.toJSON(); 
 
     const formattedProduct = {
-      ...product,
-      picture: Array.isArray(product.picture) ? product.picture : [],
-      details: parseArray(product.details),
-       size: parseArray(product.size),
-      formattedPrice: product.price.toLocaleString("id-ID"),
+       ...product,
+      picture: parseJsonField(product.picture),
+      details: parseJsonField(product.details),
+      size: parseJsonField(product.size),
+      formattedPrice: typeof product.price === "number"
+        ? product.price.toLocaleString("id-ID")
+        : "0",
     };
 
     const related = await Catalog.findAll({
@@ -85,9 +69,11 @@ const getClothesBySlug = async (req, res) => {
     const formattedRelated = related.map((rel) => {
       const relatedItem = rel.toJSON();
       return {
-        ...relatedItem,
-        picture: Array.isArray(relatedItem.picture) ? relatedItem.picture : [],
-        formattedPrice: relatedItem.price.toLocaleString("id-ID"),
+         ...relatedItem,
+        picture: parseJsonField(relatedItem.picture),
+        formattedPrice: typeof relatedItem.price === "number"
+          ? relatedItem.price.toLocaleString("id-ID")
+          : "0",
       };
     });
 
@@ -136,7 +122,7 @@ const getForOffers = async (req, res) => {
       const product = item.toJSON(); // ubah ke plain object
       return {
         ...product,
-        picture: Array.isArray(product.picture) ? product.picture : [],
+        picture: parseJsonField(product.picture),
         formattedPrice: product.price.toLocaleString("id-ID"),
       };
     });
