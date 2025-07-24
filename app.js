@@ -1,12 +1,9 @@
 const express = require('express');
 const path = require('path');
-const prisma = require('./config/database')
-const rateLimit = require('express-rate-limit');
 
 
 const clothesRoutes = require('./routes/catalogRoutes');
 
-const { sequelize } = require('./models');
 
 
 const app=express()

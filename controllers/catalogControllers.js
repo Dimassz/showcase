@@ -98,7 +98,7 @@ const getForCatalog = async (req, res) => {
       const product = item.toJSON(); 
       return {
         ...product,
-        picture: Array.isArray(product.picture) ? product.picture : [],
+        picture: parseJsonField(product.picture),
         formattedPrice: product.price.toLocaleString("id-ID"),
       };
     });
