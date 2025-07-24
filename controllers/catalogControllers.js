@@ -1,22 +1,28 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const { Catalog, User } = require('../models');
 
 const showClothesCatalog = async (req, res) => {
   try {
-    const clothes = await prisma.catalog.findMany({
+    const clothes = await Catalog.findAll({
       where: { published: true },
-      orderBy: { id: "asc" },
+      orderBy: { id: "ASC" },
     });
 
-    const formattedPoduct = clothes.map((clothes) => ({
-      ...clothes,
-      formattedPrice: clothes.price.toLocaleString("id-ID"),
-    }));
-    res.render("index", { clothes: formattedPoduct });
+    const formattedProduct = clothes.map((item) => {
+      const data = item.toJSON();
+      return {
+        ...data,
+        picture: Array.isArray(data.picture) ? data.picture : [], 
+        formattedPrice: data.price.toLocaleString("id-ID"),
+      };
+    });
+
+    res.render("index", { clothes: formattedProduct });
   } catch (err) {
     res.status(500).send("Gagal mengambil data katalog" + err);
   }
 };
+
+
 const getClothesBySlug = async (req, res) => {
   const { slug } = req.params;
 
@@ -26,71 +32,94 @@ const getClothesBySlug = async (req, res) => {
   }
 
   try {
-    const item = await prisma.catalog.findUnique({
+    const item = await Catalog.findOne({
       where: { slug },
     });
 
     if (!item) {
       return res.redirect("/404");
     }
+
+    const product = item.toJSON(); // ubah ke plain object
+
     const formattedProduct = {
-      ...item,
-      formattedPrice: item.price.toLocaleString("id-ID"),
+      ...product,
+      picture: Array.isArray(product.picture) ? product.picture : [],
+      formattedPrice: product.price.toLocaleString("id-ID"),
     };
 
-    const related = await prisma.catalog.findMany({
+    const related = await Catalog.findAll({
       where: { published: true },
-      orderBy: { id: "asc" },
-      take: 4,
+      order: [['id', 'ASC']],
+      limit: 4,
     });
-    const formattedRelated = related.map((related) => ({
-      ...related,
-      formattedPrice: related.price.toLocaleString("id-ID"),
-    }));
 
-    res.render("detail", { item: formattedProduct, related: formattedRelated });
+    const formattedRelated = related.map((rel) => {
+      const relatedItem = rel.toJSON();
+      return {
+        ...relatedItem,
+        picture: Array.isArray(relatedItem.picture) ? relatedItem.picture : [],
+        formattedPrice: relatedItem.price.toLocaleString("id-ID"),
+      };
+    });
+
+    res.render("detail", {
+      item: formattedProduct,
+      related: formattedRelated,
+    });
   } catch (err) {
-    res.status(500).send("Gagal mengambil produk" + err);
+    console.error(err);
+    res.status(500).send("Gagal mengambil produk: " + err.message);
   }
 };
 
 const getForCatalog = async (req, res) => {
   try {
-    const clothes = await prisma.catalog.findMany({
+    const clothes = await Catalog.findAll({
       where: { published: true },
-      orderBy: { id: "asc" },
+      order: [['id', 'ASC']], 
     });
 
-    const formattedProduct = clothes.map((clothes) => ({
-      ...clothes,
-      formattedPrice: clothes.price.toLocaleString("id-ID"),
-    }));
+    const formattedProduct = clothes.map((item) => {
+      const product = item.toJSON(); 
+      return {
+        ...product,
+        picture: Array.isArray(product.picture) ? product.picture : [],
+        formattedPrice: product.price.toLocaleString("id-ID"),
+      };
+    });
 
-    res.render("catalog", { clothes: formattedProduct });
+    res.render("Catalog", { clothes: formattedProduct });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return res.redirect("/404");
   }
 };
+
 
 const getForOffers = async (req, res) => {
   try {
-    const clothes = await prisma.catalog.findMany({
+    const clothes = await Catalog.findAll({
       where: { published: true },
-      orderBy: { id: "asc" },
+      order: [['id', 'ASC']], // ganti orderBy ke Sequelize style
     });
 
-    const formattedPoduct = clothes.map((clothes) => ({
-      ...clothes,
-      formattedPrice: clothes.price.toLocaleString("id-ID"),
-    }));
+    const formattedProduct = clothes.map((item) => {
+      const product = item.toJSON(); // ubah ke plain object
+      return {
+        ...product,
+        picture: Array.isArray(product.picture) ? product.picture : [],
+        formattedPrice: product.price.toLocaleString("id-ID"),
+      };
+    });
 
-    res.render("offers", { clothes: formattedPoduct });
+    res.render("offers", { clothes: formattedProduct });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return res.redirect("/404");
   }
 };
+
 
 module.exports = {
   showClothesCatalog,
