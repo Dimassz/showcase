@@ -103,7 +103,7 @@ const getForCatalog = async (req, res) => {
       };
     });
 
-    res.render("Catalog", { clothes: formattedProduct });
+    res.render("catalog", { clothes: formattedProduct });
   } catch (err) {
     console.error(err);
     return res.redirect("/404");

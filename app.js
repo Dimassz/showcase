@@ -19,8 +19,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.set('trust proxy', 1); // penting
-
+app.set('trust proxy', 1);
 
 
 app.use('/', clothesRoutes);
@@ -31,6 +30,9 @@ app.get('/404', (req, res)=>{
   res.render('404')
 })
 
+app.use((req, res, next) => {
+  res.status(404).render('404');
+});
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

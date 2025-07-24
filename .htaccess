@@ -1,0 +1,6 @@
+<FilesMatch "\.(ejs|js|json|env)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+Options -Indexes
