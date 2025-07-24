@@ -4,6 +4,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
+    "dev": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -14,8 +15,10 @@
     "dotenv": "^17.2.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
-    "express-rate-limit": "^8.0.1",
-    "nodemon": "^3.1.10",
-    "prisma": "^6.12.0"
+    "express-rate-limit": "^8.0.1"
+  },
+  "devDependencies": {
+    "prisma": "^6.12.0",
+    "nodemon": "^3.1.10"
   }
 }
